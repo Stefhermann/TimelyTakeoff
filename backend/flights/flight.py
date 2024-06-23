@@ -1,35 +1,94 @@
+# type: ignore
 import csv
 import pandas as pd
+import requests
 import os
 import joblib
+from dotenv import load_dotenv
+
+import openmeteo_requests
+import requests_cache
+from retry_requests import retry
+
+load_dotenv()
 
 cwd = os.getcwd()
 
-
-def parse_flight_code(flightCode: str) -> str:
-    res = ""
-    for c in flightCode:
-        if c.isalpha():
-            res += c
-        else:
-            return res
-    return res
+ACCESS_KEY = os.getenv("ACCESS_KEY")
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 
-def get_current_airport(flightCode: str):
-    # Find airport code from flight code
-    airportCode = parse_flight_code(flightCode)
-
+def get_airport_info(airport: str):
     df = pd.read_csv(cwd + "/flights/" + "iata-icao.csv")
+    query = df.query(f'iata == "{airport}"')
+    info = {
+        "latitude": query["latitude"].values[0],
+        "longitude": query["longitude"].values[0],
+    }
+    return info
 
-    # Find coordinates of airport
-    print(df.head(10))
-    print(df.query("iata == " + airportCode))
-    return "Hello"
+
+def get_flight_info(code: str, date: str):
+    # Find airport code from flight code
+
+    params = {
+        "access_key": ACCESS_KEY,
+        "flight_iata": code,
+    }
+    api_result = requests.get("http://api.aviationstack.com/v1/flights", params)
+    flights = api_result.json()["data"]
+    flight = None
+    for f in flights:
+        if f["flight_date"] == date and f["flight_status"] == "scheduled":
+            flight = f
+            break
+    if flight:
+        departure_airport = flight["departure"]["iata"]
+        departure_scheduled = flight["departure"]["scheduled"]
+        departure_timezone = flight["departure"]["timezone"]
+        arrival_airport = flight["arrival"]["iata"]
+        arrival_scheduled = flight["arrival"]["scheduled"]
+        arrival_timezone = flight["arrival"]["timezone"]
+
+        flight = {
+            "departure_airport": departure_airport,
+            "departure_scheduled": departure_scheduled,
+            "departure_timezone": departure_timezone,
+            "arrival_airport": arrival_airport,
+            "arrival_scheduled": arrival_scheduled,
+            "arrival_timezone": arrival_timezone,
+        }
+
+    return flight
 
 
+def get_current_weather(flight: dict, location: dict):
+
+    params = {
+        "location": f'{location["latitude"]}, {location["longitude"]}',
+        "units": "metric",
+        "timesteps": ["current"],
+        "fields": [
+            "precipitationIntensity",
+            "rainIntensity",
+            "snowIntensity",
+            "cloudCover",
+            "weatherCode",
+            "windSpeedMetarTaf",
+            "windDirectionMetarTaf",
+            "windGustMetarTaf",
+        ],
+        "startTime": flight["departure_scheduled"],
+    }
+
+    url = f"https://api.tomorrow.io/v4/timelines?apikey={WEATHER_API_KEY}"
+
+    
 def get_current_weather(long: str, lat: str, date: str):
     print("Finding current weather")
+    
+    response = requests.post(url, json=params)
+    print(response.text)
 
 
 def preprocess_x(x: list):
@@ -45,3 +104,4 @@ def preprocess_x(x: list):
     clf_x_processed = clf_pp.transform(x)
 
     return regr_x_processed, clf_x_processed
+
