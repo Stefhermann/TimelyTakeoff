@@ -115,4 +115,4 @@ def preprocess_x(x: list):
     regr_x_processed = regr_pp.transform(x)
     # clf_x_processed = clf_pp.transform(x)
 
-    return regr_x_processed, clf_x_processed
+    return regr_x_processed

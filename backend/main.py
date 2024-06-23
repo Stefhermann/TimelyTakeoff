@@ -57,7 +57,7 @@ async def predict(request: PredictRequest):
     try:
         X = request.features
 
-        regr, clf = preprocess_x(X)
+        regr = preprocess_x(X)
 
         # Make predictions using all models
         regr_departure_prediction = regr_departure_model.predict([regr])
