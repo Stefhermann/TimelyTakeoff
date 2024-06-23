@@ -4,7 +4,12 @@ from typing import Union
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
-from flights.flight import get_flight_info, get_airport_info, get_current_weather
+from flights.flight import (
+    get_flight_info,
+    get_airport_info,
+    get_current_weather,
+    preprocess_x,
+)
 
 app = FastAPI()
 
@@ -35,12 +40,12 @@ regr_departure_model = joblib.load(
 regr_arrival_model = joblib.load(
     "timely-takeoff-model/src/results/regr_arrival_model.joblib"
 )
-clf_departure_model = joblib.load(
-    "timely-takeoff-model/src/results/clf_departure_model.joblib"
-)
-clf_arrival_model = joblib.load(
-    "timely-takeoff-model/src/results/clf_arrival_model.joblib"
-)
+# clf_departure_model = joblib.load(
+#     "timely-takeoff-model/src/results/clf_departure_model.joblib"
+# )
+# clf_arrival_model = joblib.load(
+#     "timely-takeoff-model/src/results/clf_arrival_model.joblib"
+# )
 
 
 class PredictRequest(BaseModel):
@@ -52,18 +57,20 @@ async def predict(request: PredictRequest):
     try:
         X = request.features
 
+        regr, clf = preprocess_x(X)
+
         # Make predictions using all models
-        regr_departure_prediction = regr_departure_model.predict([X])
-        regr_arrival_prediction = regr_arrival_model.predict([X])
-        clf_departure_prediction = clf_departure_model.predict([X])
-        clf_arrival_prediction = clf_arrival_model.predict([X])
+        regr_departure_prediction = regr_departure_model.predict([regr])
+        regr_arrival_prediction = regr_arrival_model.predict([regr])
+        # clf_departure_prediction = clf_departure_model.predict([clf])
+        # clf_arrival_prediction = clf_arrival_model.predict([clf])
 
         # Return all predictions
         return {
             "regr_departure_prediction": regr_departure_prediction.tolist(),
             "regr_arrival_prediction": regr_arrival_prediction.tolist(),
-            "clf_departure_prediction": clf_departure_prediction.tolist(),
-            "clf_arrival_prediction": clf_arrival_prediction.tolist(),
+            # "clf_departure_prediction": clf_departure_prediction.tolist(),
+            # "clf_arrival_prediction": clf_arrival_prediction.tolist(),
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
