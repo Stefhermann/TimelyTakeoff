@@ -3,11 +3,22 @@ import csv
 import pandas as pd
 import requests
 import os
+import joblib
 from dotenv import load_dotenv
 
 load_dotenv()
 
 cwd = os.getcwd()
+
+
+def parse_flight_code(flightCode: str) -> str:
+    res = ""
+    for c in flightCode:
+        if c.isalpha():
+            res += c
+        else:
+            return res
+    return res
 
 ACCESS_KEY = os.getenv("ACCESS_KEY")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
@@ -77,5 +88,25 @@ def get_current_weather(time: str, location: dict):
 
     url = f"https://api.tomorrow.io/v4/timelines?apikey={WEATHER_API_KEY}"
 
+    
+def get_current_weather(long: str, lat: str, date: str):
+    print("Finding current weather")
+    
     response = requests.post(url, json=params)
     print(response.text)
+
+
+def preprocess_x(x: list):
+    """Preprocess X before it goes to model for prediction."""
+    regr_pp = joblib.load("backend/timely-takeoff-model/src/results/regr_preprocessor.joblib")
+    clf_pp = joblib.load("backend/timely-takeoff-model/src/results/clf_preprocessor.joblib")
+
+    if not isinstance(x[0], list):
+        x = [x]
+
+    # Apply preprocessing
+    regr_x_processed = regr_pp.transform(x)
+    clf_x_processed = clf_pp.transform(x)
+
+    return regr_x_processed, clf_x_processed
+
