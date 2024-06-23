@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 import os
+import joblib
 
 cwd = os.getcwd()
 
@@ -29,3 +30,18 @@ def get_current_airport(flightCode: str):
 
 def get_current_weather(long: str, lat: str, date: str):
     print("Finding current weather")
+
+
+def preprocess_x(x: list):
+    """Preprocess X before it goes to model for prediction."""
+    regr_pp = joblib.load("backend/timely-takeoff-model/src/results/regr_preprocessor.joblib")
+    clf_pp = joblib.load("backend/timely-takeoff-model/src/results/clf_preprocessor.joblib")
+
+    if not isinstance(x[0], list):
+        x = [x]
+
+    # Apply preprocessing
+    regr_x_processed = regr_pp.transform(x)
+    clf_x_processed = clf_pp.transform(x)
+
+    return regr_x_processed, clf_x_processed
