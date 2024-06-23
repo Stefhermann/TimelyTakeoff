@@ -15,22 +15,37 @@ def read_root():
 
 
 @app.get("/flights/{flight_id}/{flight_date}")
-async def get_flights(flight_id: str, flight_date: str):
+async def get_flight(flight_id: str, flight_date: str):
     flight = get_flight_info(flight_id, flight_date)
     departure_information = get_airport_info(flight["departure_airport"])
     arrival_information = get_airport_info(flight["arrival_airport"])
-    weather = get_current_weather(flight, departure_information)
+    departure_weather = get_current_weather(
+        flight["departure_scheduled"], departure_information
+    )
+    arrival_weather = get_current_weather(
+        flight["arrival_scheduled"], arrival_information
+    )
     return {"flightCode": flight_id, "flightDate": flight_date}
 
 
 # ml
-regr_departure_model = joblib.load("timely-takeoff-model/src/results/regr_departure_model.joblib")
-regr_arrival_model = joblib.load("timely-takeoff-model/src/results/regr_arrival_model.joblib")
-clf_departure_model = joblib.load("timely-takeoff-model/src/results/clf_departure_model.joblib")
-clf_arrival_model = joblib.load("timely-takeoff-model/src/results/clf_arrival_model.joblib")
+regr_departure_model = joblib.load(
+    "timely-takeoff-model/src/results/regr_departure_model.joblib"
+)
+regr_arrival_model = joblib.load(
+    "timely-takeoff-model/src/results/regr_arrival_model.joblib"
+)
+clf_departure_model = joblib.load(
+    "timely-takeoff-model/src/results/clf_departure_model.joblib"
+)
+clf_arrival_model = joblib.load(
+    "timely-takeoff-model/src/results/clf_arrival_model.joblib"
+)
+
 
 class PredictRequest(BaseModel):
     features: list
+
 
 @app.post("/predict")
 async def predict(request: PredictRequest):

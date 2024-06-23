@@ -20,7 +20,7 @@ const FlightPage = async ({
     <main>
       <Image
         src="/images/FlightBackground.jpg"
-        alt="Flight"
+        alt="Flight Background"
         className="-z-10"
         layout="fill"
         objectFit="cover"

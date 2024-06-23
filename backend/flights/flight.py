@@ -5,10 +5,6 @@ import requests
 import os
 from dotenv import load_dotenv
 
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-
 load_dotenv()
 
 cwd = os.getcwd()
@@ -61,7 +57,7 @@ def get_flight_info(code: str, date: str):
     return flight
 
 
-def get_current_weather(flight: dict, location: dict):
+def get_current_weather(time: str, location: dict):
 
     params = {
         "location": f'{location["latitude"]}, {location["longitude"]}',
@@ -75,9 +71,8 @@ def get_current_weather(flight: dict, location: dict):
             "weatherCode",
             "windSpeedMetarTaf",
             "windDirectionMetarTaf",
-            "windGustMetarTaf",
         ],
-        "startTime": flight["departure_scheduled"],
+        "startTime": time,
     }
 
     url = f"https://api.tomorrow.io/v4/timelines?apikey={WEATHER_API_KEY}"
