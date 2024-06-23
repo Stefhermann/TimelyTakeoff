@@ -5,7 +5,6 @@ import joblib
 
 cwd = os.getcwd()
 
-
 def parse_flight_code(flightCode: str) -> str:
     res = ""
     for c in flightCode:
