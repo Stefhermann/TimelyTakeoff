@@ -46,7 +46,7 @@ def get_flight_info(code: str, date: str):
     flights = api_result.json()["data"]
     flight = None
     for f in flights:
-        if f["flight_date"] == date and f["flight_status"] == "scheduled":
+        if f["flight_date"] == date:
             flight = f
             break
     if flight:
@@ -91,12 +91,8 @@ def get_current_weather(time: str, location: dict):
 
     url = f"https://api.tomorrow.io/v4/timelines?apikey={WEATHER_API_KEY}"
 
-
-def get_current_weather(long: str, lat: str, date: str):
-    print("Finding current weather")
-
     response = requests.post(url, json=params)
-    print(response.text)
+    return response.json()["data"]
 
 
 def preprocess_x(x: list):

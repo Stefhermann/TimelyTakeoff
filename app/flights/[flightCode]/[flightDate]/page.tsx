@@ -1,6 +1,8 @@
 import Image from "next/image";
 import axios from "axios";
 
+import FlightScreen from "@/components/flight/flightscreen";
+
 const FlightPage = async ({
   params,
 }: {
@@ -14,7 +16,14 @@ const FlightPage = async ({
     "/" +
     params.flightDate,
   );
-  console.log(res.data);
+  const flight = res.data.flight;
+  const x_list = res.data.x_list;
+
+  const predictions = await axios.post("http://127.0.0.1:8000/predict", {
+    features: x_list,
+  });
+
+  console.log(predictions.data);
 
   return (
     <main>
@@ -26,7 +35,7 @@ const FlightPage = async ({
         objectFit="cover"
         quality={100}
       />
-      <h1>Flight {params.flightCode}</h1>
+      <FlightScreen flight={flight} predictions={predictions.data} />
     </main>
   );
 };
