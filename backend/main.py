@@ -10,6 +10,12 @@ from flights.flight import (
     get_current_weather,
     preprocess_x,
 )
+from flights.helpers import (
+    calculate_reliability_score,
+    calculate_dow,
+    calculate_airtime,
+    get_hour_as_int,
+)
 from geopy import distance
 import datetime as dt
 
@@ -52,12 +58,12 @@ async def get_flight(flight_id: str, flight_date: str):
         flight["arrival_airport"],
         flight["departure_scheduled"],
         flight["arrival_scheduled"],
-        airtime,
+        calculate_airtime(flight["departure_scheduled"], flight["arrival_scheduled"]),
         miles,
-        dayofweek,
-        reliabilityscore,
-        departureHour,
-        arrivalHour,
+        calculate_dow(flight_date),
+        calculate_reliability_score(flight_id),
+        get_hour_as_int(flight["departure_scheduled"]),
+        get_hour_as_int(flight["arrival_scheduled"]),
         pdw["precipitationIntensity"],
         pdw["rainIntensity"],
         pdw["snowIntensity"],
