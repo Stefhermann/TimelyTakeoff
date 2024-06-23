@@ -11,8 +11,6 @@ const LandingPage = () => {
       <div>
         <Hero />
         <Feature />
-        <HowTo />
-        <Footer />
       </div>
     </main>
   );

@@ -10,7 +10,7 @@ import {
 
 const Feature = () => {
   return (
-    <section id="features" className="flex flex-col items-center">
+    <section id="features" className="flex flex-col items-center mb-20">
       <h1 className="font-bold mt-14 text-3xl text-sky-900">
         Packed with Features
       </h1>

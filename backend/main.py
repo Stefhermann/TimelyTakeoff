@@ -10,6 +10,8 @@ from flights.flight import (
     get_current_weather,
     preprocess_x,
 )
+from geopy import distance
+import datetime as dt
 
 app = FastAPI()
 
@@ -22,6 +24,8 @@ def read_root():
 @app.get("/flights/{flight_id}/{flight_date}")
 async def get_flight(flight_id: str, flight_date: str):
     flight = get_flight_info(flight_id, flight_date)
+    if flight is None:
+        raise HTTPException(status_code=404, detail="Flight not found")
     departure_information = get_airport_info(flight["departure_airport"])
     arrival_information = get_airport_info(flight["arrival_airport"])
     departure_weather = get_current_weather(
@@ -30,7 +34,46 @@ async def get_flight(flight_id: str, flight_date: str):
     arrival_weather = get_current_weather(
         flight["arrival_scheduled"], arrival_information
     )
-    return {"flightCode": flight_id, "flightDate": flight_date}
+    pdw = departure_weather["timelines"][0]["intervals"][0]["values"]
+    paw = arrival_weather["timelines"][0]["intervals"][0]["values"]
+    airtime = 120
+    miles = distance.distance(
+        (departure_information["latitude"], departure_information["longitude"]),
+        (arrival_information["latitude"], arrival_information["longitude"]),
+    ).miles
+    year, month, day = flight_date.split("-")
+    dayofweek = dt.datetime(int(year), int(month), int(day)).weekday()
+    reliabilityscore = 10
+    departureHour = 12
+    arrivalHour = 12
+    x_list = [
+        flight_date,
+        flight["departure_airport"],
+        flight["arrival_airport"],
+        flight["departure_scheduled"],
+        flight["arrival_scheduled"],
+        airtime,
+        miles,
+        dayofweek,
+        reliabilityscore,
+        departureHour,
+        arrivalHour,
+        pdw["precipitationIntensity"],
+        pdw["rainIntensity"],
+        pdw["snowIntensity"],
+        pdw["weatherCode"],
+        pdw["cloudCover"],
+        pdw["windSpeedMetarTaf"],
+        pdw["windDirectionMetarTaf"],
+        paw["precipitationIntensity"],
+        paw["rainIntensity"],
+        paw["snowIntensity"],
+        paw["weatherCode"],
+        paw["cloudCover"],
+        paw["windSpeedMetarTaf"],
+        paw["windDirectionMetarTaf"],
+    ]
+    return {"flight": flight, "x_list": x_list}
 
 
 # ml
