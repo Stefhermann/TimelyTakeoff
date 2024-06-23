@@ -1,0 +1,3 @@
+[submodule "backend/timely-takeoff-model"]
+	path = backend/timely-takeoff-model
+	url = https://github.com/dbchristenson/timely-takeoff-model.git
