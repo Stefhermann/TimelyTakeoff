@@ -14,6 +14,16 @@ load_dotenv()
 
 cwd = os.getcwd()
 
+
+def parse_flight_code(flightCode: str) -> str:
+    res = ""
+    for c in flightCode:
+        if c.isalpha():
+            res += c
+        else:
+            return res
+    return res
+
 ACCESS_KEY = os.getenv("ACCESS_KEY")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
